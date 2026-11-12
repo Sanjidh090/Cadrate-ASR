@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beyond Recognition Accuracy: Efficient CPU Streaming ASR for Dysarthric Speech</title>
+<meta name="description" content="SAPC2 Track 2 streaming ASR for dysarthric speech: a domain-adapted causal Zipformer deployed as INT8 ONNX on CPU (22.18% CER on Test1), and Cadrate ASR, a 2.70M-parameter dual-rate CNN–GRU prototype.">
+<meta name="citation_title" content="Beyond Recognition Accuracy: Efficient CPU Streaming ASR for Dysarthric Speech">
+<meta name="citation_author" content="Hasan, Sanjid">
+<meta name="citation_author" content="Rahman, Zaina">
+<meta name="citation_author" content="Aurthi, Suhita Islam">
+<meta name="citation_author" content="Rakib, Md Rashaduzzaman">
+<meta name="citation_author" content="Turabe, Sadia Jahan">
+<meta name="citation_author" content="Rahman, Md. Wasif">
+<meta name="citation_publication_date" content="2026">
+<meta name="citation_pdf_url" content="https://sanjidh090.github.io/Cadrate-ASR/assets/paper.pdf">
+<meta property="og:title" content="Beyond Recognition Accuracy: Efficient CPU Streaming ASR for Dysarthric Speech">
+<meta property="og:description" content="Causal Zipformer streaming on CPU at 22.18% CER, a perceptual error audit, and Cadrate ASR, a 2.70M-parameter dual-rate prototype.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://sanjidh090.github.io/Cadrate-ASR/">
+<meta property="og:image" content="https://sanjidh090.github.io/Cadrate-ASR/assets/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:ital,wght@0,300..700;1,300..700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230B7A6D'/%3E%3Cg fill='%23fff'%3E%3Crect x='6' y='13' width='3' height='6' rx='1.5'/%3E%3Crect x='11' y='8' width='3' height='16' rx='1.5'/%3E%3Crect x='16' y='11' width='3' height='10' rx='1.5'/%3E%3Crect x='21' y='6' width='3' height='20' rx='1.5'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="masthead">
+  <div class="masthead__inner">
+    <a class="brand" href="#top">Cadrate ASR</a>
+    <nav aria-label="Sections">
+      <ul>
+        <li><a href="#track2">Task</a></li>
+        <li><a href="#method">Method</a></li>
+        <li><a href="#results">Results</a></li>
+        <li><a href="#errors">Errors</a></li>
+        <li><a href="#cadrate">Cadrate</a></li>
+        <li><a href="#cite">Cite</a></li>
+      </ul>
+    </nav>
+    <a class="gh" href="https://github.com/sanjidh090/Cadrate-ASR" aria-label="Code on GitHub"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
+  </div>
+</header>
+
+<div class="d-title" id="top">
+  <div class="l-body">
+    <p class="kicker">Beyond Recognition Accuracy:</p>
+    <h1>Efficient CPU Streaming ASR for Dysarthric Speech</h1>
+  </div>
+</div>
+
+<div class="byline">
+  <div class="l-body byline-grid">
+    <div>
+      <h3>Authors</h3>
+      <ul>
+        <li>Sanjid Hasan<sup>1</sup></li>
+        <li>Zaina Rahman<sup>2</sup></li>
+        <li>Suhita Islam Aurthi<sup>2</sup></li>
+        <li>Md Rashaduzzaman Rakib<sup>2</sup></li>
+        <li>Sadia Jahan Turabe<sup>2</sup></li>
+        <li>Md. Wasif Rahman<sup>2</sup></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Affiliations</h3>
+      <ul>
+        <li><sup>1</sup>Electrical &amp; Electronic Engineering, KUET</li>
+        <li><sup>2</sup>Computer Science &amp; Engineering, KUET</li>
+        <li class="dim">Khulna University of Engineering &amp; Technology, Bangladesh</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Venue</h3>
+      <ul>
+        <li>SAPC2 Track 2 (Streaming ASR)</li>
+        <li>NeurIPS 2026 Workshop</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Resources</h3>
+      <ul class="res">
+        <li><a href="assets/paper.pdf">Paper (PDF)</a></li>
+        <li><a href="assets/slides.pdf">Slides (PDF)</a></li>
+        <li><a href="https://github.com/sanjidh090/Cadrate-ASR">Code</a></li>
+        <li><a href="#cite">BibTeX</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<main id="main">
+<div class="l-body">
+  <div class="tldr">
+    <h3>TL;DR</h3>
+    <p>We fine-tuned a compact <strong>66.1M-parameter causal Zipformer</strong> for dysarthric speech and ran it <strong>on CPU in 100-ms chunks</strong> as mixed-precision INT8 ONNX. On the official SAPC2 Test1 leaderboard it reaches <strong>22.18% CER and 31.73% WER</strong>, against the baseline's 34.59% CER, with a 1.38 s median stable first token and a 117 ms last-token delay.</p>
+    <p>Two further findings: recognition errors follow <strong>how clear the speech sounds</strong> at least as closely as the speaker's diagnosis, and <strong>Cadrate ASR</strong>, our 2.70M-parameter dual-rate CNN–GRU, runs faster on CPU but needs pretraining before its speed is worth anything.</p>
+  </div>
+</div>
+
+<div class="l-page teaser" role="group" aria-label="Three headline results">
+  <div class="tz-panel">
+    <div class="tz-step">Stream</div>
+    <div class="tz-task">Can a 66M-parameter model transcribe dysarthric speech live, on a CPU?</div>
+    <div class="tz-vis" aria-hidden="true">
+      <div class="tz-chunks" id="tz-chunks"></div>
+      <div class="tz-cap-mini">audio in 100-ms chunks, INT8 ONNX</div>
+    </div>
+    <p class="tz-out">Zipformer INT8, greedy decoding, official Test1</p>
+    <p class="tz-big">22.18%<span>CER, down from the 34.59% baseline</span></p>
+  </div>
+  <div class="tz-panel">
+    <div class="tz-step">Listen</div>
+    <div class="tz-task">Does a diagnosis tell you where the errors will be?</div>
+    <div class="tz-vis tz-bars" aria-hidden="true">
+      <div class="tz-col"><span class="tz-v">19.3%</span><div class="tz-bar" style="height:30%"></div><span class="tz-bl">clear speech</span></div>
+      <div class="tz-col"><span class="tz-v">57.3%</span><div class="tz-bar hi" style="height:88%"></div><span class="tz-bl">unclear speech</span></div>
+    </div>
+    <p class="tz-out">437+ recordings annotated by ear</p>
+    <p class="tz-big">3×<span>more word errors on unclear speech</span></p>
+  </div>
+  <div class="tz-panel">
+    <div class="tz-step">Shrink</div>
+    <div class="tz-task">How small can a streaming encoder get?</div>
+    <div class="tz-vis tz-size" aria-hidden="true">
+      <div class="tz-sq big"><span>Zipformer<br>66.1M</span></div>
+      <div class="tz-sq small"></div><span class="tz-sql">Cadrate<br>2.70M</span>
+    </div>
+    <p class="tz-out">Cadrate ASR, dual-rate CNN–GRU with CTC</p>
+    <p class="tz-big">249 KiB<span>fixed streaming state</span></p>
+  </div>
+</div>
+
+<div class="l-body">
+  <p>Dysarthria is a motor speech disorder linked to Parkinson's disease, cerebral palsy, ALS, Down syndrome and stroke. Speech becomes slurred, slow or irregular, and it varies from speaker to speaker and even within one utterance. Recognizers trained on typical voices break down.</p>
+  <p>The strongest systems from the 2025 Speech Accessibility Project Challenge used large offline models such as Parakeet-TDT 1.1B and Whisper large-v3 on GPUs. They see the whole utterance before answering. <strong>Real-time captioning or voice control cannot wait for that.</strong> A streaming recognizer has to emit text from short audio chunks, with no future context, on modest hardware, and the text it shows should not keep changing under the reader.</p>
+  <p>This page describes our system for Track 2 of the Speech Accessibility Project Challenge 2 (SAPC2), what we learned about where streaming recognizers fail on dysarthric speech, and a small prototype, Cadrate ASR, that tests how far CPU cost can be pushed down.</p>
+</div>
+
+<figure class="l-page" id="figure-1">
+  <div class="stream" id="stream">
+    <div class="stream-top">
+      <p class="stream-title">Audio arrives in 100-ms chunks. The transcript has to settle while the speaker is still talking.</p>
+      <button class="btn" id="replay" type="button"><svg viewBox="0 0 14 14" fill="currentColor" aria-hidden="true"><path d="M3 1.5v11l9-5.5z"/></svg>Replay</button>
+    </div>
+    <div class="scroll-x">
+      <div class="timeline">
+        <div class="marks" aria-hidden="true">
+          <div class="mark" id="m-first" style="top:22px"><b>First output</b>0.70 s</div>
+          <div class="mark stable" id="m-stable" style="top:0"><b>TTFT-stable</b>first word that never changes, 1.38 s</div>
+          <div class="mark r" id="m-ttlt" style="top:0"><b>TTLT 117 ms</b>audio end to final token</div>
+        </div>
+        <svg id="wave" viewBox="0 0 1000 150" role="img" aria-label="Waveform of a 3.2 second utterance split into 100-millisecond chunks, with a playhead. Drag or use the arrow keys to move through time."></svg>
+      </div>
+    </div>
+    <div class="hyp-row">
+      <div>
+        <p class="hyp-label" id="hyp-time">Transcript at 0.00 s</p>
+        <p class="hyp" id="hyp"></p>
+        <p class="key"><span><i class="solid"></i>settled</span><span><i></i>may still be revised</span></p>
+      </div>
+      <ol class="log" id="log" aria-label="Hypothesis revisions"></ol>
+    </div>
+  </div>
+  <figcaption><a href="#figure-1"><b>Figure 1:</b></a> How Track 2 measures responsiveness. Drag along the waveform to step through time. The utterance is invented and this is not recorded model output; the timings match our system's median Test1 latencies. Because our vocabulary includes digit tokens, the model can write “10” directly.</figcaption>
+</figure>
+
+<section class="l-body" id="track2">
+  <h2>Streaming ASR under SAPC2 Track 2</h2>
+  <p>In Track 2, systems receive audio in 100-ms chunks and must run strictly on CPU. They are judged on accuracy and on responsiveness:</p>
+  <div class="scroll-x"><table>
+    <thead><tr><th>Metric</th><th>What it measures</th></tr></thead>
+    <tbody>
+      <tr><td>CER / WER</td><td>Character and word error rate</td></tr>
+      <tr><td>TTFT-stable</td><td>Time until the first word that never changes afterwards</td></tr>
+      <tr><td>TTLT</td><td>Delay of the final token after the audio ends</td></tr>
+    </tbody>
+  </table></div>
+  <p>Raw speed, such as real-time factor, is not the same as responsiveness a user can feel. How long tokens take to appear, whether partial hypotheses stay put, and how quickly the end is detected all matter too.</p>
+</section>
+
+<section class="l-body" id="method">
+  <h2>Method</h2>
+  <p>One pipeline takes the data to a CPU-streaming model, and all of it was trained on a single consumer GPU.</p>
+  <ol class="pipeline">
+    <li><b>SAPC2 data.</b> 336,075 training utterances (742.72 h, 875 speakers), plus 41.8k TTS clips, TORGO and a 6-stage acoustic augmentation.</li>
+    <li><b>Text and vocabulary.</b> Disfluency-free normalized targets; BPE vocabulary grown from 500 to 510 tokens.</li>
+    <li><b>Adaptation.</b> Causal Zipformer fine-tuned with random 16–32 frame chunks and SpecAugment.</li>
+    <li><b>ONNX export.</b> Graph optimization; INT8 encoder and joiner, FP32 predictor.</li>
+    <li><b>CPU streaming.</b> sherpa-onnx with 100-ms chunks; greedy or 4-path beam search.</li>
+    <li><b>Evaluation.</b> WER and CER, TTFT-stable and TTLT, plus a perceptual audit.</li>
+  </ol>
+
+  <h3>Data and augmentation</h3>
+  <div class="scroll-x"><table>
+    <thead><tr><th>Source</th><th class="n">Utterances</th><th class="n">Hours</th><th class="n">Speakers</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>SAPC2 Train</td><td class="n">336,075</td><td class="n">742.72</td><td class="n">875</td><td>PD 311, CP 167, ALS 167, DS 145, stroke 85</td></tr>
+      <tr><td>SAPC2 Dev</td><td class="n">47,929</td><td class="n">106.62</td><td class="n">124</td><td>No speaker overlap with train</td></tr>
+      <tr><td>Synthetic TTS (Qwen, Kokoro)</td><td class="n">41,850</td><td class="n">—</td><td class="n">—</td><td>Timing, channel and volume perturbations</td></tr>
+      <tr><td>TORGO + 6-stage augmentation</td><td class="n">suppl.</td><td class="n">—</td><td class="n">—</td><td>Noise, stretch, pitch, low-pass, echo, reverb</td></tr>
+    </tbody>
+  </table></div>
+  <p>Because train and dev share no speakers, every evaluation is on voices the model has never heard. Most recordings (82%) are under 10 s; ALS speakers produce the longest utterances (8.97 s on average) and speakers with Down syndrome the shortest (6.73 s). About 68% of training files repeat voice-assistant commands such as “Hey Google”, each spoken more than 2,100 times. We trained on 88,694 unique normalized text targets.</p>
+  <p>To separate channel degradation from dysarthric articulation, a 6-stage pipeline cascades Gaussian noise (σ = 0.02), a 0.9× time stretch, a +2 semitone pitch shift, a 4 kHz Butterworth low-pass filter, a single-tap echo and a five-tap reverb.</p>
+
+  <h3>Vocabulary transplantation: 500 → 510 tokens</h3>
+  <p>The normalized transcripts contain numerals that the base BPE vocabulary splits awkwardly. We appended the ten digits as new tokens. The original 500 embedding and joiner rows stay untouched, so pretrained knowledge is not overwritten, and the new rows start from scaled Gaussian noise with zero bias.</p>
+  <div class="vocab" aria-hidden="true">
+    <div class="vc"><div class="old">500 pretrained rows</div><span>before</span></div>
+    <div class="va">→</div>
+    <div class="vc"><div class="old">500 rows, IDs unchanged</div><div class="new">0 1 2 3 4 5 6 7 8 9</div><span>after</span></div>
+  </div>
+
+  <h3>Fine-tuning and CPU deployment</h3>
+  <p>The base model is a pretrained streaming Zipformer RNN-T (~66.1M parameters, Icefall). Its multi-rate causal encoder runs stacks at 50, 25, 12.5, 6.25, 12.5 and 25 Hz over 80-dimensional log-Mel features with no lookahead; the low-rate middle stacks make long context cheap.</p>
+  <div class="scroll-x"><table class="kv">
+    <tbody>
+      <tr><th>Hardware</th><td>1× NVIDIA RTX 4070 (12 GB), FP16 mixed precision</td></tr>
+      <tr><th>Learning rate</th><td>3 × 10<sup>−5</sup></td></tr>
+      <tr><th>Batching</th><td>Dynamic, up to 120 s of audio per batch</td></tr>
+      <tr><th>Chunks</th><td>Random 16–32 frames; left context 128 or 256 frames</td></tr>
+      <tr><th>Epochs</th><td>19, with epoch 19 (E19) selected</td></tr>
+      <tr><th>Export</th><td>ONNX; INT8 dynamic quantization on encoder and joiner, FP32 predictor</td></tr>
+      <tr><th>Runtime</th><td>sherpa-onnx, 100-ms chunks, greedy (official) or 4-path beam with 0.96–1.28 s tail padding</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="l-body" id="results">
+  <h2>Results</h2>
+
+  <div class="exp-head">
+    <span class="exp-num">Finding 1</span>
+    <h3>Does a compact causal transducer beat the baseline under strict CPU streaming?</h3>
+  </div>
+  <p>Yes, by a wide margin. On the official leaderboard our greedy INT8 submission lowers CER by 12.41 points and WER by 21.04 points, and finishes 3.1× sooner after the audio ends.</p>
+  <div class="scroll-x"><table>
+    <thead><tr><th>System (CPU, 100-ms chunks)</th><th class="n">WER (%)</th><th class="n">CER (%)</th><th class="n">TTFT-stable</th><th class="n">TTLT</th></tr></thead>
+    <tbody>
+      <tr><td>SAPC2 Track 2 baseline</td><td class="n">52.77</td><td class="n">34.59</td><td class="n">—</td><td class="n">367 ms</td></tr>
+      <tr class="ours"><td>Ours: Zipformer INT8, greedy</td><td class="n">31.73</td><td class="n">22.18</td><td class="n">1.38 s</td><td class="n">117 ms</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="exp-head">
+    <span class="exp-num">Finding 2</span>
+    <h3>What does adaptation buy over off-the-shelf and offline models?</h3>
+  </div>
+  <p>Offline models do well with the whole utterance in view, but run slower than real time on CPU and fail the streaming harness. The pretrained streaming Zipformer meets the constraints but starts at 58.20% WER. Domain fine-tuning cuts that roughly threefold.</p>
+  <div class="scroll-x"><table>
+    <thead><tr><th>System</th><th>Split</th><th class="n">WER (%)</th><th class="n">CER (%)</th><th class="n">CPU</th></tr></thead>
+    <tbody>
+      <tr class="grp"><td colspan="5">Offline, full-utterance context</td></tr>
+      <tr><td>Whisper Large-v3, zero-shot</td><td>Dev</td><td class="n">36.56</td><td class="n">15.34</td><td class="n">RTF &gt; 1.0</td></tr>
+      <tr><td>Parakeet RNN-T, fine-tuned</td><td>Dev</td><td class="n">22.22</td><td class="n">9.67</td><td class="n">RTF &gt; 1.0</td></tr>
+      <tr class="grp"><td colspan="5">Streaming, 100-ms chunks</td></tr>
+      <tr><td>Zipformer, pretrained, zero-shot</td><td>Dev-501</td><td class="n">58.20</td><td class="n">34.91</td><td class="n">—</td></tr>
+      <tr><td>Zipformer, fine-tuned (validation)</td><td>Dev-501</td><td class="n">27.48</td><td class="n">18.90</td><td class="n">—</td></tr>
+      <tr><td>Zipformer E19 INT8, greedy</td><td>Dev-501</td><td class="n">21.74</td><td class="n">—</td><td class="n">140 s total</td></tr>
+      <tr class="ours"><td>Zipformer E19 INT8, beam-4</td><td>Dev-501</td><td class="n">19.47</td><td class="n">12.59</td><td class="n">157 s total</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Beam-search results are local only; the leaderboard submission used greedy decoding.</p>
+
+  <div class="exp-head">
+    <span class="exp-num">Finding 3</span>
+    <h3>Can decoding alone improve accuracy without hurting latency?</h3>
+  </div>
+  <p>Switching from greedy to 4-path beam search lowers WER by 2.55 points for only 17 s more total decode time. INT8 beam-4 runs 2.9× faster than FP32 beam-4 and is slightly more accurate. Wider beams take 7–10× longer for no gain, blank penalties hurt, and 1.28 s of tail padding stops prolonged dysarthric syllables from being cut off.</p>
+</section>
+
+<figure class="l-page" id="figure-2">
+  <div class="card tabs" data-tabs>
+    <div class="tabrow" role="tablist" aria-label="Decoding results">
+      <button role="tab" aria-selected="true" aria-controls="p-pareto" id="t-pareto">Accuracy vs. latency (Test1)</button>
+      <button role="tab" aria-selected="false" aria-controls="p-sweep" id="t-sweep" tabindex="-1">Decoding sweep (Dev-100)</button>
+    </div>
+    <div role="tabpanel" id="p-pareto" aria-labelledby="t-pareto" class="panel">
+      <img src="assets/test1-pareto.webp" width="2165" height="960" alt="Two scatter plots of CER on Test1 against median TTFT and median TTLT. Zipformer variants cluster at 22 to 24 percent CER with TTLT around 100 to 130 ms; the baseline sits at 34.6 percent CER with 367 ms TTLT; NeMo ONNX sits near 22.7 percent CER with higher latency.">
+    </div>
+    <div role="tabpanel" id="p-sweep" aria-labelledby="t-sweep" class="panel" hidden>
+      <div class="scroll-x"><table class="sweep">
+        <thead><tr><th>Configuration</th><th class="n">WER (%)</th><th class="n">CER (%)</th><th class="bar-cell">Total decode time</th></tr></thead>
+        <tbody id="ablation"></tbody>
+      </table></div>
+    </div>
+  </div>
+  <figcaption><a href="#figure-2"><b>Figure 2:</b></a> Left tab: CER on SAPC2 Test1 against median time to first token (a) and to last token (b), over 89 timed utterances; lower and further left is better. Right tab: all 15 decoding, precision, blank-penalty and padding settings on 100 development recordings.</figcaption>
+</figure>
+
+<section class="l-body" id="errors">
+  <h2>Where errors come from</h2>
+
+  <div class="exp-head">
+    <span class="exp-num">Finding 4</span>
+    <h3>Does the diagnosis explain the errors, or does how the speech sounds?</h3>
+  </div>
+  <p>Both matter, and perceived clarity matters at least as much. By etiology, our Zipformer does best on Parkinson's disease and ALS, where articulation stays relatively stable, and worst on cerebral palsy and Down syndrome. We then audited 437+ recordings from the 501-utterance set by ear for clarity, articulation, fluency and rate. WER climbs from <strong>19.30% on clear speech to 57.28% on unclear speech</strong>, and our model beats both unadapted baselines by 15–44 WER points in every category.</p>
+</section>
+
+<figure class="l-page" id="figure-3">
+  <div class="card tabs" data-tabs>
+    <div class="tabrow" role="tablist" aria-label="Error breakdowns">
+      <button role="tab" aria-selected="true" aria-controls="p-perc" id="t-perc">By how speech sounds</button>
+      <button role="tab" aria-selected="false" aria-controls="p-etio" id="t-etio" tabindex="-1">By clinical etiology</button>
+    </div>
+    <div role="tabpanel" id="p-perc" aria-labelledby="t-perc" class="panel">
+      <ul class="legend">
+        <li><i style="background:#00897B"></i>Zipformer E19 (ours)</li>
+        <li><i style="background:#6B7FD7"></i>FastConformer</li>
+        <li><i style="background:#C27C0E"></i>Nemotron INT4</li>
+      </ul>
+      <svg id="perc" role="img" aria-label="Grouped bar chart of WER by perceptual category for three models; the same data is in the table below."></svg>
+      <details class="tv">
+        <summary>Show as a table, including rare categories</summary>
+        <div class="scroll-x"><table>
+          <thead><tr><th>Characteristic</th><th class="n">n</th><th class="n">Ours WER</th><th class="n">Ours CER</th><th class="n">FC WER</th><th class="n">FC CER</th><th class="n">Nem. WER</th><th class="n">Nem. CER</th></tr></thead>
+          <tbody id="perc-table"></tbody>
+        </table></div>
+      </details>
+    </div>
+    <div role="tabpanel" id="p-etio" aria-labelledby="t-etio" class="panel" hidden>
+      <div class="seg" role="group" aria-label="Metric">
+        <button type="button" data-m="wer" aria-pressed="true">WER</button>
+        <button type="button" data-m="cer" aria-pressed="false">CER</button>
+      </div>
+      <div class="scroll-x"><table class="heat" id="heat"></table></div>
+      <div class="ramp"><span id="ramp-bar"></span>0% to 75%; darker means more errors</div>
+    </div>
+  </div>
+  <figcaption><a href="#figure-3"><b>Figure 3:</b></a> Error rates on the 501-utterance evaluation set. Perceptual tags are the authors' listening judgements, not clinical diagnoses; the chart shows categories with at least 16 samples. Hover over a row or cell for exact values.</figcaption>
+</figure>
+
+<section class="l-body">
+  <div class="exp-head">
+    <span class="exp-num">Finding 5</span>
+    <h3>Is a fast first token the same as a usable transcript?</h3>
+  </div>
+  <p>No. On a separate 57-recording set, every off-the-shelf model scored 67.78–74.71% WER before adaptation. Moonshine Tiny emits its first token in 62 ms, but its first <em>stable</em> word arrives after about 3 seconds. A transcript that keeps flickering does not help someone reading it, which is why we report TTFT-stable rather than first-token latency.</p>
+  <div class="scroll-x"><table>
+    <thead><tr><th>Off-the-shelf model (ms from start of audio)</th><th class="n">First output</th><th class="n">Stable</th><th class="n">TTLT</th></tr></thead>
+    <tbody>
+      <tr><td>Moonshine Tiny</td><td class="n">62</td><td class="n">2,986</td><td class="n">671</td></tr>
+      <tr><td>Moonshine Small</td><td class="n">124</td><td class="n">4,252</td><td class="n">3,325</td></tr>
+      <tr><td>Moonshine ONNX</td><td class="n">2,336</td><td class="n">2,736</td><td class="n">131</td></tr>
+      <tr><td>Off-the-shelf Zipformer</td><td class="n">2,495</td><td class="n">2,906</td><td class="n">546</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="l-body" id="cadrate">
+  <h2>Cadrate ASR</h2>
+  <div class="exp-head">
+    <span class="exp-num">Finding 6</span>
+    <h3>How small can a streaming encoder get before accuracy collapses?</h3>
+  </div>
+  <p>Cadrate ASR is a 2.70M-parameter causal model, 25× smaller than our Zipformer, trained from scratch to probe the lower limit of CPU compute and state memory. It stacks four 100 Hz filterbank frames into a <strong>25 Hz fast acoustic pathway</strong> (256 channels; gated depthwise dilated convolutions with kernel 7 and dilations 1, 2, 4, 8). Alongside runs a <strong>12.5 Hz slow context pathway</strong> (192 channels; four causal convolution blocks and a unidirectional GRU). A sigmoid-gated fusion feeds the slow context back into the fast pathway without breaking causality, and a framewise CTC head decodes greedily.</p>
+</section>
+
+<figure class="l-page" id="figure-4">
+  <a class="zoom" href="assets/cadrate-architecture.webp" target="_blank" rel="noopener"><img src="assets/cadrate-architecture.webp" width="1672" height="941" alt="Cadrate ASR architecture. 16 kHz audio becomes 80-dimensional log-Mel features at 100 Hz, grouped four frames at a time into a 256-dimensional 25 Hz stream. A fast path of four depthwise convolutions and a slow 12.5 Hz path of a pairwise projection, four depthwise convolutions and a GRU meet in a causal gated cross-rate fusion. Four post-fusion convolution blocks feed a CTC softmax head and greedy decoding. Persistent state: 63,744 FP32 values, about 249 KiB."></a>
+  <figcaption><a href="#figure-4"><b>Figure 4:</b></a> Cadrate ASR: fast and slow pathways joined by causal gated fusion. Convolution caches and the recurrent state persist across audio chunks. Click to open at full size.</figcaption>
+</figure>
+
+<section class="l-body">
+  <p>The fusion gate decides, channel by channel, how much slow context to add to each fast frame:</p>
+  <div class="eq"><var>γ</var><sub><var>t</var></sub> = <var>σ</var>(<var>W</var><sub><var>g</var></sub><var>x</var><sub><var>t</var></sub> + <var>b</var><sub><var>g</var></sub>), &nbsp;&nbsp; <var>x̃</var><sub><var>t</var></sub> = <var>x</var><sub><var>t</var></sub> + <var>γ</var><sub><var>t</var></sub> ⊙ <var>W</var><sub><var>c</var></sub><var>c</var><sub><var>t</var></sub></div>
+  <p>Odd and even fast frames read the previous and current GRU state, <var>c</var><sub>2<var>j</var>−1</sub> = <var>h</var><sub><var>j</var>−1</sub> and <var>c</var><sub>2<var>j</var></sub> = <var>h</var><sub><var>j</var></sub>, so no frame sees context from its future. With no attention cache, the persistent state is fixed:</p>
+  <div class="eq"><var>N</var><sub>state</sub> = 2(256)(6)(1+2+4+8) + (192)(6)(1+2+4+8) + 192 + 192 = 63,744 values ≈ 249 KiB (FP32)</div>
+
+  <div class="scroll-x"><table>
+    <thead><tr><th></th><th>Adapted Zipformer</th><th>Cadrate ASR</th></tr></thead>
+    <tbody>
+      <tr><td class="dim">Encoder</td><td>Multi-rate causal Transformer, 6 stacks</td><td>Dual-rate causal depthwise CNN–GRU</td></tr>
+      <tr><td class="dim">Frame rates</td><td>50, 25, 12.5, 6.25, 12.5, 25 Hz</td><td>25 Hz fast, 12.5 Hz slow</td></tr>
+      <tr><td class="dim">Cross-rate path</td><td>Down/upsampling, bypasses</td><td>Causal gated additive fusion</td></tr>
+      <tr><td class="dim">Objective</td><td>Pruned RNN-T, greedy or beam-4</td><td>Framewise CTC, greedy</td></tr>
+      <tr><td class="dim">Inference state</td><td>Attention caches + RNN-T predictor</td><td>Fixed 249 KiB conv/GRU caches</td></tr>
+      <tr><td class="dim">Parameters</td><td>~66.1M, pretrained + fine-tuned</td><td>~2.70M, from scratch</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="pros">
+    <div><h4>What worked</h4><ul><li>Lower CPU real-time factor than the Zipformer</li><li>Lower P95 chunk latency</li><li>Fixed 249 KiB state with 25× fewer parameters</li></ul></div>
+    <div><h4>What fell short</h4><ul><li>Trained from scratch on SAPC2 only</li><li>High WER; did not generalize to unseen speakers</li></ul></div>
+  </div>
+  <p class="callout">Low compute is only useful once accuracy crosses a practical threshold. Very fast architectures still need large-scale pretraining, so a pretrained Cadrate is the natural next step.</p>
+</section>
+
+<section class="l-body" id="next">
+  <h2>What comes next?</h2>
+  <p>Four lessons stood out:</p>
+  <ol>
+    <li><strong>Adaptation matters more than size.</strong> A 66.1M-parameter causal model adapted to dysarthric speech beat every unadapted streaming baseline we tried: FastConformer, Nemotron INT4 and Moonshine v2.</li>
+    <li><strong>Accuracy and stability pull apart.</strong> Beam search lowers WER but revises partial hypotheses as chunks arrive. A slightly slower transcript that stays put often helps a user more than an instant one that flickers.</li>
+    <li><strong>Speed cannot replace pretraining.</strong> INT8 ONNX streams smoothly on CPU, but a tiny model trained from scratch does not generalize to new speakers.</li>
+    <li><strong>Diagnoses hide differences in clarity.</strong> WER follows perceived clarity (19% vs. 57%) as closely as diagnosis, so perceptual benchmarks belong alongside clinical ones.</li>
+  </ol>
+  <p>Next, we want recognition that holds up on unclear, slurred and imprecise speech; lower latency to <em>stable</em> output, not just to the first token; lightweight models, starting with a pretrained Cadrate, that generalize to unseen speakers; and perceptual benchmarks that sit alongside clinical etiology.</p>
+  <h3>Limitations</h3>
+  <p>We did not ablate TTS data, TORGO or vocabulary expansion separately. Decoding settings were tuned on the development set we report, and beam-search gains are local, not on the leaderboard. Results are single-run point estimates without confidence intervals, some perceptual subgroups are small, and the perceptual tags are subjective author annotations. Cadrate ASR is exploratory. Scope is English SAPC2 data, which cannot be redistributed.</p>
+</section>
+
+<section class="l-body" id="refs">
+  <h2>Selected references</h2>
+  <ol class="refs">
+    <li><b>Zipformer: A Faster and Better Encoder for Automatic Speech Recognition</b> <a href="https://arxiv.org/abs/2310.11230">[arXiv]</a><br>Yao, Z., Guo, L., Yang, X., Kang, W., Kuang, F., Yang, Y., Jin, Z., Lin, L. and Povey, D., 2024. ICLR.</li>
+    <li><b>Community-Supported Shared Infrastructure in Support of Speech Accessibility</b><br>Hasegawa-Johnson, M. et al., 2024. Journal of Speech, Language, and Hearing Research 67(11).</li>
+    <li><b>The Interspeech 2025 Speech Accessibility Project Challenge</b><br>Zheng, X. et al., 2025. Interspeech.</li>
+    <li><b>icefall: speech recognition recipes</b> <a href="https://github.com/k2-fsa/icefall">[link]</a> and <b>sherpa-onnx</b> <a href="https://github.com/k2-fsa/sherpa-onnx">[link]</a><br>k2-fsa contributors.</li>
+    <li><b>Tokenizer Transplantation: Mitigating Autoregressive Collapse in Edge-Efficient Bengali ASR</b> <a href="https://arxiv.org/abs/2607.09598">[arXiv]</a><br>Hasan, S. and Rahman, M. A., 2026. MusIML Workshop, ICML.</li>
+    <li><b>Make it Hard to Hear, Easy to Learn: Long-Form Bengali ASR and Speaker Diarization via Extreme Augmentation and Perfect Alignment</b> <a href="https://arxiv.org/abs/2602.23070">[arXiv]</a><br>Hasan, S., Labib, R., Fuad, A. H. M. and Hasan, B., 2026.</li>
+    <li><b>SpecAugment: A Simple Data Augmentation Method for Automatic Speech Recognition</b> <a href="https://arxiv.org/abs/1904.08779">[arXiv]</a><br>Park, D. S. et al., 2019. Interspeech.</li>
+    <li><b>Sequence Transduction with Recurrent Neural Networks</b> <a href="https://arxiv.org/abs/1211.3711">[arXiv]</a><br>Graves, A., 2012.</li>
+    <li><b>The TORGO Database of Acoustic and Articulatory Speech from Speakers with Dysarthria</b><br>Rudzicz, F., Namasivayam, A. K. and Wolff, T., 2012. Language Resources and Evaluation 46.</li>
+    <li><b>Moonshine v2: Ergodic Streaming Encoder ASR for Latency-Critical Speech Applications</b> <a href="https://arxiv.org/abs/2602.12241">[arXiv]</a><br>Kudlur, M., King, E., Wang, J. and Warden, P., 2026.</li>
+    <li><b>Dissecting User-Perceived Latency of On-Device E2E Speech Recognition</b><br>Shangguan, Y., Li, J., Liang, Q., Alvarez, R. and McGraw, I., 2021. Interspeech.</li>
+    <li><b>Fine-Tuning Parakeet-TDT for Dysarthric Speech Recognition in the Speech Accessibility Project Challenge</b><br>Takahashi, K. et al., 2025. Interspeech.</li>
+  </ol>
+  <p class="note">The full reference list is in the <a href="assets/paper.pdf">paper</a>.</p>
+</section>
+
+<section class="l-body" id="cite">
+  <h2>Citation</h2>
+  <p class="cite-lbl">Please cite this work as</p>
+  <div class="cite-box">
+    <button class="btn copy" type="button" data-copy="cite-text">Copy</button>
+    <p id="cite-text">Sanjid Hasan, Zaina Rahman, Suhita Islam Aurthi, Md Rashaduzzaman Rakib, Sadia Jahan Turabe, and Md. Wasif Rahman. “Beyond Recognition Accuracy: Efficient CPU Streaming ASR for Dysarthric Speech.” Speech Accessibility Project Challenge 2, Track 2, 2026.</p>
+  </div>
+  <p class="cite-lbl">or in BibTeX</p>
+  <div class="cite-box">
+    <button class="btn copy" type="button" data-copy="bibtex">Copy</button>
+<pre id="bibtex">@misc{hasan2026beyond,
+  title  = {Beyond Recognition Accuracy: Efficient {CPU} Streaming {ASR}
+            for Dysarthric Speech},
+  author = {Hasan, Sanjid and Rahman, Zaina and Aurthi, Suhita Islam and
+            Rakib, Md Rashaduzzaman and Turabe, Sadia Jahan and
+            Rahman, Md. Wasif},
+  year   = {2026},
+  note   = {Speech Accessibility Project Challenge 2, Track 2 (Streaming ASR)},
+  url    = {https://sanjidh090.github.io/Cadrate-ASR/}
+}</pre>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="l-body">
+    <p>SAPC2 data are used under the Speech Accessibility Project data-use agreement and are not redistributed here. Built on icefall and sherpa-onnx.</p>
+    <p>Contact: <a href="mailto:hasan2203090@stud.kuet.ac.bd">hasan2203090@stud.kuet.ac.bd</a></p>
+  </div>
+</footer>
+
+<div class="tip" id="tip" role="tooltip"></div>
+<script src="assets/main.js"></script>
+</body>
+</html>
